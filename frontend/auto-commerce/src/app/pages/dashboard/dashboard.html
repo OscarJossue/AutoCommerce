@@ -1,0 +1,534 @@
+<div class="app-shell">
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-icon">
+        AC
+      </div>
+
+      <div>
+        <strong>AutoCommerce</strong>
+        <span>Data Processor</span>
+      </div>
+    </div>
+
+    <nav>
+      <a href="#dashboard" class="active">
+        <span>01</span>
+        Dashboard
+      </a>
+
+      <a href="#importar">
+        <span>02</span>
+        Importar CSV
+      </a>
+
+      <a href="#procesar">
+        <span>03</span>
+        Procesar
+      </a>
+
+      <a href="#cuarentena">
+        <span>04</span>
+        Cuarentena
+      </a>
+    </nav>
+
+    <div class="server-status">
+
+      <span
+        class="status-dot"
+        [class.connected]="databaseConnected">
+      </span>
+
+      <div>
+        <strong>
+          {{ databaseConnected
+            ? 'Sistema conectado'
+            : 'Sin conexion' }}
+        </strong>
+
+        <small>
+          SQL Server · .NET API
+        </small>
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <main class="main-content">
+
+    <header id="dashboard">
+
+      <div>
+        <span class="eyebrow">
+          SISTEMA DE PROCESAMIENTO
+        </span>
+
+        <h1>
+          Control de operaciones
+          <span>automotrices.</span>
+        </h1>
+
+        <p>
+          Carga, valida y procesa informacion
+          comercial de vehiculos desde archivos CSV.
+        </p>
+      </div>
+
+      <div
+        class="api-indicator"
+        [class.online]="databaseConnected">
+
+        <span></span>
+
+        {{ databaseConnected
+          ? 'API ONLINE'
+          : 'API OFFLINE' }}
+
+      </div>
+
+    </header>
+
+
+    <section class="stats-grid">
+
+      <article class="stat-card">
+        <span>REGISTROS CARGADOS</span>
+        <strong>{{ totalLoaded }}</strong>
+        <small>Ultimo archivo</small>
+      </article>
+
+      <article class="stat-card">
+        <span>REGISTROS VALIDOS</span>
+        <strong>{{ totalValid }}</strong>
+        <small>Disponibles en commerce</small>
+      </article>
+
+      <article class="stat-card danger">
+        <span>CUARENTENA</span>
+        <strong>{{ totalQuarantine }}</strong>
+        <small>Registros con errores</small>
+      </article>
+
+    </section>
+
+
+    <section
+      class="panel"
+      id="importar">
+
+      <div class="panel-heading">
+
+        <div>
+          <span class="step-number">01</span>
+
+          <div>
+            <h2>Importar archivo CSV</h2>
+            <p>
+              Selecciona el archivo y revisa
+              los registros antes de enviarlos.
+            </p>
+          </div>
+        </div>
+
+        <span class="format">
+          commerce_DDMMYYYY.csv
+        </span>
+
+      </div>
+
+
+      <div
+        class="dropzone"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event)">
+
+        <div class="upload-symbol">
+          ↑
+        </div>
+
+        <h3>
+          Arrastra tu archivo aqui
+        </h3>
+
+        <p>
+          o selecciona un archivo desde tu equipo
+        </p>
+
+        <label class="primary-button">
+          Seleccionar CSV
+
+          <input
+            type="file"
+            accept=".csv"
+            (change)="onFileSelected($event)"
+            hidden>
+        </label>
+
+        @if (selectedFile) {
+
+          <div class="selected-file">
+
+            <div>
+              <strong>
+                {{ selectedFile.name }}
+              </strong>
+
+              <span>
+                {{
+                  selectedFile.size / 1024
+                  | number:'1.1-1'
+                }} KB
+              </span>
+            </div>
+
+            <button
+              type="button"
+              (click)="clearSelection()">
+              Quitar
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      @if (message) {
+
+        <div
+          class="message"
+          [class.success]="messageType === 'success'"
+          [class.error]="messageType === 'error'">
+
+          {{ message }}
+
+        </div>
+
+      }
+
+
+      @if (previewRows.length > 0) {
+
+        <div class="preview-block">
+
+          <div class="table-heading">
+
+            <div>
+              <h3>Previsualizacion</h3>
+
+              <p>
+                {{ previewRows.length }}
+                registros detectados
+              </p>
+            </div>
+
+            <button
+              class="primary-button"
+              type="button"
+              [disabled]="uploading || uploadCompleted"
+              (click)="uploadCsv()">
+
+              {{
+                uploading
+                  ? 'Cargando...'
+                  : uploadCompleted
+                    ? 'Archivo cargado'
+                    : 'Enviar al servidor'
+              }}
+
+            </button>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Comercio</th>
+                  <th>Documento</th>
+                  <th>Vehiculo</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Placa</th>
+                  <th>Precio</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (
+                  row of previewRows;
+                  track $index
+                ) {
+
+                  <tr>
+                    <td>
+                      {{ row.pc_processdate }}
+                    </td>
+
+                    <td>
+                      {{
+                        row.pc_nomcomred
+                        || 'Sin nombre'
+                      }}
+                    </td>
+
+                    <td>
+                      {{
+                        row.pc_numdoc
+                        || 'Sin documento'
+                      }}
+                    </td>
+
+                    <td>
+                      {{ row.nom_vehiculo }}
+                    </td>
+
+                    <td>
+                      {{ row.marca }}
+                    </td>
+
+                    <td>
+                      {{ row.modelo }}
+                    </td>
+
+                    <td>
+                      {{ row.placa }}
+                    </td>
+
+                    <td>
+                      ${{ row.precio }}
+                    </td>
+
+                    <td>
+                      <span class="vehicle-status">
+                        {{ row.estado_vehiculo }}
+                      </span>
+                    </td>
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <section
+      class="panel process-panel"
+      id="procesar">
+
+      <div class="process-copy">
+
+        <span class="step-number">
+          02
+        </span>
+
+        <div>
+          <h2>Procesar informacion</h2>
+
+          <p>
+            Ejecuta las validaciones para una
+            fecha especifica. Los registros
+            incorrectos seran enviados a cuarentena.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="process-actions">
+
+        <label>
+          Fecha de proceso
+
+          <input
+            type="date"
+            [(ngModel)]="processDate">
+        </label>
+
+        <button
+          class="dark-button"
+          type="button"
+          [disabled]="processing"
+          (click)="processCommerce()">
+
+          {{
+            processing
+              ? 'Procesando...'
+              : 'Procesar registros'
+          }}
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <section
+      class="panel"
+      id="cuarentena">
+
+      <div class="panel-heading">
+
+        <div>
+          <span class="step-number">
+            03
+          </span>
+
+          <div>
+            <h2>Registros en cuarentena</h2>
+
+            <p>
+              Registros que no superaron
+              las validaciones de negocio.
+            </p>
+          </div>
+        </div>
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="loadQuarantine()">
+
+          Actualizar
+
+        </button>
+
+      </div>
+
+
+      @if (loadingQuarantine) {
+
+        <div class="empty-state">
+          Consultando registros...
+        </div>
+
+      } @else if (quarantineRows.length === 0) {
+
+        <div class="empty-state">
+
+          <strong>
+            Sin registros en cuarentena
+          </strong>
+
+          <span>
+            Los errores procesados
+            apareceran aqui.
+          </span>
+
+        </div>
+
+      } @else {
+
+        <div class="quarantine-grid">
+
+          @for (
+            row of quarantineRows;
+            track $index
+          ) {
+
+            <article class="error-card">
+
+              <div class="error-card-top">
+
+                <span class="error-badge">
+                  ERROR
+                </span>
+
+                <span>
+                  {{
+                    row.pcProcessdate
+                    | date:'yyyy-MM-dd'
+                  }}
+                </span>
+
+              </div>
+
+              <h3>
+                {{
+                  row.nomVehiculo
+                  || 'Vehiculo sin nombre'
+                }}
+              </h3>
+
+              <div class="vehicle-meta">
+
+                <span>
+                  {{ row.marca }}
+                  {{ row.modelo }}
+                </span>
+
+                <span>
+                  {{ row.placa || 'Sin placa' }}
+                </span>
+
+              </div>
+
+              <dl>
+
+                <div>
+                  <dt>Comercio</dt>
+                  <dd>
+                    {{
+                      row.pcNomcomred
+                      || 'No registrado'
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Documento</dt>
+                  <dd>
+                    {{
+                      row.pcNumdoc
+                      || 'No registrado'
+                    }}
+                  </dd>
+                </div>
+
+              </dl>
+
+              <div class="reason">
+
+                <span>MOTIVO</span>
+
+                <p>
+                  {{ row.motivo }}
+                </p>
+
+              </div>
+
+            </article>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  </main>
+
+</div>

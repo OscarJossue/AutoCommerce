@@ -1,0 +1,7 @@
+pc_processdate,pc_nomcomred,pc_numdoc,nom_vehiculo,marca,modelo,anio,placa,color,tipo_vehiculo,kilometraje,precio,estado_vehiculo
+2026-10-07,AutoMundo Quito,1792456789001,Toyota RAV4 XLE,Toyota,RAV4,2025,PBA1234,Blanco,SUV,0,38990.00,Nuevo
+2026-10-07,Premium Motors,1793344556001,BMW X3 xDrive,BMW,X3,2024,PBB4521,Negro,SUV,12400,57900.00,Usado
+2026-10-07,,1795566778001,Ford Ranger XLT,Ford,Ranger,2025,PBC7788,Azul,Camioneta,0,45900.00,Nuevo
+2026-10-07,Andes Motors,ABC123456,Chevrolet Tahoe,Chevrolet,Tahoe,2024,PBD9912,Gris,SUV,18500,68500.00,Usado
+2026-10-07,Pacific Motors,,Hyundai Tucson,Hyundai,Tucson,2025,PBE4455,Blanco,SUV,3500,32900.00,Usado
+2026-10-08,AutoCenter Ecuador,1799988877001,Kia Sportage,Kia,Sportage,2026,PBF2233,Rojo,SUV,0,34900.00,Nuevo
